@@ -112,7 +112,7 @@ func EncodeRequest(method string, args ...interface{}) ([]byte, error) {
 		return nil, errors.New("Method name required")
 	}
 	m.MethodName = method
-	params, _ := Encode(args)
+	params, _ := Encode(args...)
 	m.Params = params
 	return xml.Marshal(m)
 }
