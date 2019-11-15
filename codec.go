@@ -208,11 +208,11 @@ func Decode(rawXML string, result interface{}) {
 }
 
 //CopyAllParam ...
-func CopyAllParam(m MethodCall, args ...interface{}) {
+func CopyAllParam(params []Param, args ...interface{}) {
 	/*if len(m.Params) > len(args) {
 		return
 	}*/
-	for i, v := range m.Params {
+	for i, v := range params {
 		if i >= len(args) {
 			break
 		}
