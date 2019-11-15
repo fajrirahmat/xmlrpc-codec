@@ -1,4 +1,4 @@
-package codec
+package xmlrpc
 
 import (
 	"encoding/base64"
@@ -15,8 +15,19 @@ type (
 		MethodName string   `xml:"methodName"`
 		Params     []Param  `xml:"params>param"`
 	}
+	//Response ...
+	Response struct {
+		XMLName xml.Name `xml:"methodResponse"`
+		Params  []Param  `xml:"params>param"`
+		Fault   *Fault   `xml:"fault,omitempty"`
+	}
 	//Param ...
 	Param struct {
+		Value Value `xml:"value"`
+	}
+
+	//Fault ...
+	Fault struct {
 		Value Value `xml:"value"`
 	}
 	//Value ...
@@ -43,13 +54,24 @@ type (
 	}
 )
 
-//EncodeRequest ...
-func EncodeRequest(method string, args ...interface{}) ([]byte, error) {
-	m := MethodCall{}
-	if method == "" {
-		return nil, errors.New("Method name required")
-	}
-	m.MethodName = method
+//EncodeResponse ...
+func EncodeResponse(args ...interface{}) ([]byte, error) {
+	response := Response{}
+	params, _ := Encode(args)
+	response.Params = params
+	return xml.Marshal(response)
+}
+
+//EncodeFault ...
+func EncodeFault(val Value) ([]byte, error) {
+	response := Response{}
+	f := &Fault{Value: val}
+	response.Fault = f
+	return xml.Marshal(response)
+}
+
+//Encode ...
+func Encode(args ...interface{}) ([]Param, error) {
 	var params []Param
 	//Do other things
 	for _, arg := range args {
@@ -79,8 +101,18 @@ func EncodeRequest(method string, args ...interface{}) ([]byte, error) {
 			}
 			params = append(params, param)
 		}
-
 	}
+	return params, nil
+}
+
+//EncodeRequest ...
+func EncodeRequest(method string, args ...interface{}) ([]byte, error) {
+	m := MethodCall{}
+	if method == "" {
+		return nil, errors.New("Method name required")
+	}
+	m.MethodName = method
+	params, _ := Encode(args)
 	m.Params = params
 	return xml.Marshal(m)
 }
@@ -170,13 +202,9 @@ func getPtrValue(val reflect.Value) reflect.Value {
 	return val
 }
 
-//DecodeRequest ...
-func DecodeRequest(rawXML string) *MethodCall {
-	var theXMLObj MethodCall
-	if err := xml.Unmarshal([]byte(rawXML), &theXMLObj); err != nil {
-		return nil
-	}
-	return &theXMLObj
+//Decode ...
+func Decode(rawXML string, result interface{}) {
+	xml.Unmarshal([]byte(rawXML), result)
 }
 
 //CopyAllParam ...
