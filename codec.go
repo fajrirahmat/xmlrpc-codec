@@ -57,7 +57,7 @@ type (
 //EncodeResponse ...
 func EncodeResponse(args ...interface{}) ([]byte, error) {
 	response := Response{}
-	params, _ := Encode(args)
+	params, _ := Encode(args...)
 	response.Params = params
 	return xml.Marshal(response)
 }
